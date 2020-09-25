@@ -1,9 +1,7 @@
 //! A cross-platform Rust API for memory mapped buffers.
 
-#![doc(html_root_url = "https://docs.rs/memmap/0.7.0")]
+#![doc(html_root_url = "https://docs.rs/mapr/0.7.0")]
 
-#[cfg(windows)]
-extern crate winapi;
 #[cfg(windows)]
 mod windows;
 #[cfg(windows)]
@@ -55,7 +53,7 @@ impl MmapOptions {
     /// # Example
     ///
     /// ```
-    /// use memmap::{MmapMut, MmapOptions};
+    /// use mapr::{MmapMut, MmapOptions};
     /// # use std::io::Result;
     ///
     /// # fn main() -> Result<()> {
@@ -85,17 +83,17 @@ impl MmapOptions {
     /// # Example
     ///
     /// ```
-    /// use memmap::MmapOptions;
+    /// use mapr::MmapOptions;
     /// use std::fs::File;
     ///
     /// # fn main() -> std::io::Result<()> {
     /// let mmap = unsafe {
     ///     MmapOptions::new()
-    ///                 .offset(10)
+    ///                 .offset(2)
     ///                 .map(&File::open("README.md")?)?
     /// };
-    /// assert_eq!(&b"A Rust library for cross-platform memory mapped IO."[..],
-    ///            &mmap[..51]);
+    /// assert_eq!(&b"mapr"[..],
+    ///            &mmap[..4]);
     /// # Ok(())
     /// # }
     /// ```
@@ -113,16 +111,16 @@ impl MmapOptions {
     /// # Example
     ///
     /// ```
-    /// use memmap::MmapOptions;
+    /// use mapr::MmapOptions;
     /// use std::fs::File;
     ///
     /// # fn main() -> std::io::Result<()> {
     /// let mmap = unsafe {
     ///     MmapOptions::new()
-    ///                 .len(8)
+    ///                 .len(6)
     ///                 .map(&File::open("README.md")?)?
     /// };
-    /// assert_eq!(&b"# memmap"[..], &mmap[..]);
+    /// assert_eq!(&b"# mapr"[..], &mmap[..]);
     /// # Ok(())
     /// # }
     /// ```
@@ -154,7 +152,7 @@ impl MmapOptions {
     /// # Example
     ///
     /// ```
-    /// use memmap::MmapOptions;
+    /// use mapr::MmapOptions;
     ///
     /// # fn main() -> std::io::Result<()> {
     /// let stack = MmapOptions::new().stack().len(4096).map_anon();
@@ -194,7 +192,7 @@ impl MmapOptions {
     /// # Example
     ///
     /// ```
-    /// use memmap::MmapOptions;
+    /// use mapr::MmapOptions;
     /// use std::fs::File;
     /// use std::io::Read;
     ///
@@ -237,13 +235,10 @@ impl MmapOptions {
     /// # Example
     ///
     /// ```
-    /// # extern crate memmap;
-    /// # extern crate tempdir;
-    /// #
     /// use std::fs::OpenOptions;
     /// use std::path::PathBuf;
     ///
-    /// use memmap::MmapOptions;
+    /// use mapr::MmapOptions;
     /// #
     /// # fn main() -> std::io::Result<()> {
     /// # let tempdir = tempdir::TempDir::new("mmap")?;
@@ -278,7 +273,7 @@ impl MmapOptions {
     /// # Example
     ///
     /// ```
-    /// use memmap::MmapOptions;
+    /// use mapr::MmapOptions;
     /// use std::fs::File;
     /// use std::io::Write;
     ///
@@ -335,14 +330,14 @@ impl MmapOptions {
 /// ## Example
 ///
 /// ```
-/// use memmap::MmapOptions;
+/// use mapr::MmapOptions;
 /// use std::io::Write;
 /// use std::fs::File;
 ///
 /// # fn main() -> std::io::Result<()> {
 /// let file = File::open("README.md")?;
 /// let mmap = unsafe { MmapOptions::new().map(&file)? };
-/// assert_eq!(b"# memmap", &mmap[0..8]);
+/// assert_eq!(b"# mapr", &mmap[..6]);
 /// # Ok(())
 /// # }
 /// ```
@@ -370,7 +365,7 @@ impl Mmap {
     /// use std::fs::File;
     /// use std::io::Read;
     ///
-    /// use memmap::Mmap;
+    /// use mapr::Mmap;
     ///
     /// # fn main() -> std::io::Result<()> {
     /// let mut file = File::open("README.md")?;
@@ -400,10 +395,7 @@ impl Mmap {
     /// # Example
     ///
     /// ```
-    /// # extern crate memmap;
-    /// # extern crate tempdir;
-    /// #
-    /// use memmap::Mmap;
+    /// use mapr::Mmap;
     /// use std::ops::DerefMut;
     /// use std::io::Write;
     /// # use std::fs::OpenOptions;
@@ -520,13 +512,10 @@ impl MmapMut {
     /// # Example
     ///
     /// ```
-    /// # extern crate memmap;
-    /// # extern crate tempdir;
-    /// #
     /// use std::fs::OpenOptions;
     /// use std::path::PathBuf;
     ///
-    /// use memmap::MmapMut;
+    /// use mapr::MmapMut;
     /// #
     /// # fn main() -> std::io::Result<()> {
     /// # let tempdir = tempdir::TempDir::new("mmap")?;
@@ -569,14 +558,11 @@ impl MmapMut {
     /// # Example
     ///
     /// ```
-    /// # extern crate memmap;
-    /// # extern crate tempdir;
-    /// #
     /// use std::fs::OpenOptions;
     /// use std::io::Write;
     /// use std::path::PathBuf;
     ///
-    /// use memmap::MmapMut;
+    /// use mapr::MmapMut;
     ///
     /// # fn main() -> std::io::Result<()> {
     /// # let tempdir = tempdir::TempDir::new("mmap")?;
@@ -645,12 +631,10 @@ impl MmapMut {
     /// # Example
     ///
     /// ```
-    /// # extern crate memmap;
-    /// #
     /// use std::io::Write;
     /// use std::path::PathBuf;
     ///
-    /// use memmap::{Mmap, MmapMut};
+    /// use mapr::{Mmap, MmapMut};
     ///
     /// # fn main() -> std::io::Result<()> {
     /// let mut mmap = MmapMut::map_anon(128)?;
@@ -741,11 +725,6 @@ impl fmt::Debug for MmapMut {
 
 #[cfg(test)]
 mod test {
-
-    extern crate tempdir;
-    #[cfg(windows)]
-    extern crate winapi;
-
     use std::fs::OpenOptions;
     use std::io::{Read, Write};
     #[cfg(windows)]
