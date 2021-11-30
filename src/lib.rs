@@ -45,6 +45,7 @@ pub struct MmapOptions {
     stack: bool,
     locked: bool,
     private: bool,
+    huge: u8,
 }
 
 impl MmapOptions {
@@ -182,6 +183,11 @@ impl MmapOptions {
         self
     }
 
+    pub fn huge(&mut self, huge: u8) -> &mut Self {
+        self.huge = huge;
+        self
+    }
+
     /// Creates a read-only memory map backed by a file.
     ///
     /// # Errors
@@ -211,7 +217,7 @@ impl MmapOptions {
     /// # }
     /// ```
     pub unsafe fn map(&self, file: &File) -> Result<Mmap> {
-        MmapInner::map(self.get_len(file)?, file, self.offset, self.locked, self.private).map(|inner| Mmap { inner: inner })
+        MmapInner::map(self.get_len(file)?, file, self.offset, self.locked, self.private, self.huge).map(|inner| Mmap { inner: inner })
     }
 
     /// Creates a readable and executable memory map backed by a file.
@@ -221,7 +227,7 @@ impl MmapOptions {
     /// This method returns an error when the underlying system call fails, which can happen for a
     /// variety of reasons, such as when the file is not open with read permissions.
     pub unsafe fn map_exec(&self, file: &File) -> Result<Mmap> {
-        MmapInner::map_exec(self.get_len(file)?, file, self.offset, self.locked, self.private)
+        MmapInner::map_exec(self.get_len(file)?, file, self.offset, self.locked, self.private, self.huge)
             .map(|inner| Mmap { inner: inner })
     }
 
@@ -256,7 +262,7 @@ impl MmapOptions {
     /// # }
     /// ```
     pub unsafe fn map_mut(&self, file: &File) -> Result<MmapMut> {
-        MmapInner::map_mut(self.get_len(file)?, file, self.offset, self.locked, self.private)
+        MmapInner::map_mut(self.get_len(file)?, file, self.offset, self.locked, self.private, self.huge)
             .map(|inner| MmapMut { inner: inner })
     }
 
@@ -285,7 +291,7 @@ impl MmapOptions {
     /// # }
     /// ```
     pub unsafe fn map_copy(&self, file: &File) -> Result<MmapMut> {
-        MmapInner::map_copy(self.get_len(file)?, file, self.offset, self.locked)
+        MmapInner::map_copy(self.get_len(file)?, file, self.offset, self.locked, self.huge)
             .map(|inner| MmapMut { inner: inner })
     }
 
@@ -298,7 +304,7 @@ impl MmapOptions {
     ///
     /// This method returns an error when the underlying system call fails.
     pub fn map_anon(&self) -> Result<MmapMut> {
-        MmapInner::map_anon(self.len.unwrap_or(0), self.stack, self.locked, self.private).map(|inner| MmapMut { inner: inner })
+        MmapInner::map_anon(self.len.unwrap_or(0), self.stack, self.locked, self.private, self.huge).map(|inner| MmapMut { inner: inner })
     }
 }
 

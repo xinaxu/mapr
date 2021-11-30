@@ -25,6 +25,9 @@ const MAP_STACK: libc::c_int = 0;
     target_os = "android"
 ))]
 const MAP_LOCKED: libc::c_int = libc::MAP_LOCKED;
+const MAP_HUGETLB: libc::c_int = libc::MAP_HUGETLB;
+const MAP_HUGE_1GB: libc::c_int = libc::MAP_HUGE_1GB;
+const MAP_HUGE_2MB: libc::c_int = libc::MAP_HUGE_2MB;
 
 #[cfg(not(any(
     all(target_os = "linux", not(target_arch = "mips")),
@@ -81,63 +84,87 @@ impl MmapInner {
         }
     }
 
-    pub fn map(len: usize, file: &File, offset: u64, locked: bool, private: bool) -> io::Result<MmapInner> {
+    pub fn map(len: usize, file: &File, offset: u64, locked: bool, private: bool, huge: u8) -> io::Result<MmapInner> {
         let locked = if locked { MAP_LOCKED } else { 0 };
         let private = if private { libc::MAP_PRIVATE } else { libc::MAP_SHARED };
+        let huge = match huge {
+            1 => MAP_HUGETLB | MAP_HUGE_2MB,
+            2 => MAP_HUGETLB | MAP_HUGE_1GB,
+            _ => 0,
+        };
         MmapInner::new(
             len,
             libc::PROT_READ,
-            locked | private,
+            locked | private | huge,
             file.as_raw_fd(),
             offset,
         )
     }
 
-    pub fn map_exec(len: usize, file: &File, offset: u64, locked: bool, private: bool) -> io::Result<MmapInner> {
+    pub fn map_exec(len: usize, file: &File, offset: u64, locked: bool, private: bool, huge: u8) -> io::Result<MmapInner> {
         let locked = if locked { MAP_LOCKED } else { 0 };
         let private = if private { libc::MAP_PRIVATE } else { libc::MAP_SHARED };
+        let huge = match huge {
+            1 => MAP_HUGETLB | MAP_HUGE_2MB,
+            2 => MAP_HUGETLB | MAP_HUGE_1GB,
+            _ => 0,
+        };
         MmapInner::new(
             len,
             libc::PROT_READ | libc::PROT_EXEC,
-            locked | private,
+            locked | private | huge,
             file.as_raw_fd(),
             offset,
         )
     }
 
-    pub fn map_mut(len: usize, file: &File, offset: u64, locked: bool, private: bool) -> io::Result<MmapInner> {
+    pub fn map_mut(len: usize, file: &File, offset: u64, locked: bool, private: bool, huge: u8) -> io::Result<MmapInner> {
         let locked = if locked { MAP_LOCKED } else { 0 };
         let private = if private { libc::MAP_PRIVATE } else { libc::MAP_SHARED };
+        let huge = match huge {
+            1 => MAP_HUGETLB | MAP_HUGE_2MB,
+            2 => MAP_HUGETLB | MAP_HUGE_1GB,
+            _ => 0,
+        };
         MmapInner::new(
             len,
             libc::PROT_READ | libc::PROT_WRITE,
-            locked | private,
+            locked | private | huge,
             file.as_raw_fd(),
             offset,
         )
     }
 
-    pub fn map_copy(len: usize, file: &File, offset: u64, locked: bool) -> io::Result<MmapInner> {
+    pub fn map_copy(len: usize, file: &File, offset: u64, locked: bool, huge: u8) -> io::Result<MmapInner> {
         let locked = if locked { MAP_LOCKED } else { 0 };
-
+        let huge = match huge {
+            1 => MAP_HUGETLB | MAP_HUGE_2MB,
+            2 => MAP_HUGETLB | MAP_HUGE_1GB,
+            _ => 0,
+        };
         MmapInner::new(
             len,
             libc::PROT_READ | libc::PROT_WRITE,
-            libc::MAP_PRIVATE | locked,
+            libc::MAP_PRIVATE | locked | huge,
             file.as_raw_fd(),
             offset,
         )
     }
 
     /// Open an anonymous memory map.
-    pub fn map_anon(len: usize, stack: bool, locked: bool, private: bool) -> io::Result<MmapInner> {
+    pub fn map_anon(len: usize, stack: bool, locked: bool, private: bool, huge: u8) -> io::Result<MmapInner> {
         let stack = if stack { MAP_STACK } else { 0 };
         let locked = if locked { MAP_LOCKED } else { 0 };
         let private = if private { libc::MAP_PRIVATE } else { libc::MAP_SHARED };
+        let huge = match huge {
+            1 => MAP_HUGETLB | MAP_HUGE_2MB,
+            2 => MAP_HUGETLB | MAP_HUGE_1GB,
+            _ => 0,
+        };
         MmapInner::new(
             len,
             libc::PROT_READ | libc::PROT_WRITE,
-            libc::MAP_ANON | stack | locked | private,
+            libc::MAP_ANON | stack | locked | private | huge,
             -1,
             0,
         )
