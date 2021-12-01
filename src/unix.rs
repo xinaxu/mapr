@@ -28,6 +28,7 @@ const MAP_LOCKED: libc::c_int = libc::MAP_LOCKED;
 const MAP_HUGETLB: libc::c_int = libc::MAP_HUGETLB;
 const MAP_HUGE_1GB: libc::c_int = libc::MAP_HUGE_1GB;
 const MAP_HUGE_2MB: libc::c_int = libc::MAP_HUGE_2MB;
+const MAP_NORESERVE: libc::c_int = libc::MAP_NORESERVE;
 
 #[cfg(not(any(
     all(target_os = "linux", not(target_arch = "mips")),
@@ -84,7 +85,7 @@ impl MmapInner {
         }
     }
 
-    pub fn map(len: usize, file: &File, offset: u64, locked: bool, private: bool, huge: u8) -> io::Result<MmapInner> {
+    pub fn map(len: usize, file: &File, offset: u64, locked: bool, private: bool, huge: u8, noreserve: bool) -> io::Result<MmapInner> {
         let locked = if locked { MAP_LOCKED } else { 0 };
         let private = if private { libc::MAP_PRIVATE } else { libc::MAP_SHARED };
         let huge = match huge {
@@ -92,16 +93,17 @@ impl MmapInner {
             2 => MAP_HUGETLB | MAP_HUGE_1GB,
             _ => 0,
         };
+        let noreserve = if noreserve { MAP_NORESERVE } else { 0 };
         MmapInner::new(
             len,
             libc::PROT_READ,
-            locked | private | huge,
+            locked | private | huge | noreserve,
             file.as_raw_fd(),
             offset,
         )
     }
 
-    pub fn map_exec(len: usize, file: &File, offset: u64, locked: bool, private: bool, huge: u8) -> io::Result<MmapInner> {
+    pub fn map_exec(len: usize, file: &File, offset: u64, locked: bool, private: bool, huge: u8, noreserve: bool) -> io::Result<MmapInner> {
         let locked = if locked { MAP_LOCKED } else { 0 };
         let private = if private { libc::MAP_PRIVATE } else { libc::MAP_SHARED };
         let huge = match huge {
@@ -109,16 +111,17 @@ impl MmapInner {
             2 => MAP_HUGETLB | MAP_HUGE_1GB,
             _ => 0,
         };
+        let noreserve = if noreserve { MAP_NORESERVE } else { 0 };
         MmapInner::new(
             len,
             libc::PROT_READ | libc::PROT_EXEC,
-            locked | private | huge,
+            locked | private | huge | noreserve,
             file.as_raw_fd(),
             offset,
         )
     }
 
-    pub fn map_mut(len: usize, file: &File, offset: u64, locked: bool, private: bool, huge: u8) -> io::Result<MmapInner> {
+    pub fn map_mut(len: usize, file: &File, offset: u64, locked: bool, private: bool, huge: u8, noreserve: bool) -> io::Result<MmapInner> {
         let locked = if locked { MAP_LOCKED } else { 0 };
         let private = if private { libc::MAP_PRIVATE } else { libc::MAP_SHARED };
         let huge = match huge {
@@ -126,33 +129,35 @@ impl MmapInner {
             2 => MAP_HUGETLB | MAP_HUGE_1GB,
             _ => 0,
         };
+        let noreserve = if noreserve { MAP_NORESERVE } else { 0 };
         MmapInner::new(
             len,
             libc::PROT_READ | libc::PROT_WRITE,
-            locked | private | huge,
+            locked | private | huge | noreserve,
             file.as_raw_fd(),
             offset,
         )
     }
 
-    pub fn map_copy(len: usize, file: &File, offset: u64, locked: bool, huge: u8) -> io::Result<MmapInner> {
+    pub fn map_copy(len: usize, file: &File, offset: u64, locked: bool, huge: u8, noreserve: bool) -> io::Result<MmapInner> {
         let locked = if locked { MAP_LOCKED } else { 0 };
         let huge = match huge {
             1 => MAP_HUGETLB | MAP_HUGE_2MB,
             2 => MAP_HUGETLB | MAP_HUGE_1GB,
             _ => 0,
         };
+        let noreserve = if noreserve { MAP_NORESERVE } else { 0 };
         MmapInner::new(
             len,
             libc::PROT_READ | libc::PROT_WRITE,
-            libc::MAP_PRIVATE | locked | huge,
+            libc::MAP_PRIVATE | locked | huge | noreserve,
             file.as_raw_fd(),
             offset,
         )
     }
 
     /// Open an anonymous memory map.
-    pub fn map_anon(len: usize, stack: bool, locked: bool, private: bool, huge: u8) -> io::Result<MmapInner> {
+    pub fn map_anon(len: usize, stack: bool, locked: bool, private: bool, huge: u8, noreserve: bool) -> io::Result<MmapInner> {
         let stack = if stack { MAP_STACK } else { 0 };
         let locked = if locked { MAP_LOCKED } else { 0 };
         let private = if private { libc::MAP_PRIVATE } else { libc::MAP_SHARED };
@@ -161,10 +166,11 @@ impl MmapInner {
             2 => MAP_HUGETLB | MAP_HUGE_1GB,
             _ => 0,
         };
+        let noreserve = if noreserve { MAP_NORESERVE } else { 0 };
         MmapInner::new(
             len,
             libc::PROT_READ | libc::PROT_WRITE,
-            libc::MAP_ANON | stack | locked | private | huge,
+            libc::MAP_ANON | stack | locked | private | huge | noreserve,
             -1,
             0,
         )
